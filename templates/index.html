@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Buscador de Empresas</title>
+</head>
+
+<body>
+    <h1>Buscador de Empresas</h1>
+    <table border="1">
+        <tr>
+            <th>Nombre</th>
+            <th>Municipio</th>
+            <th>Departamento</th>
+        </tr>
+        {% for empresa in empresas %}
+        <tr>
+            <td>{{ empresa['COORDINACIÓN EPIDEMIOLÓGICA'] }}</td>
+            <td>{{ empresa['NOMBRE DE LA ORGANIZACIÓN (RAZÓN SOCIAL)'] }}</td>
+            <td>{{ empresa['NOMBRE DEL REPRESENTANTE LEGAL:'] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+
+</html>
