@@ -1,0 +1,35 @@
+# Entorno virtual
+venv/
+ENV/
+env/
+.venv/
+
+# Archivos de Python compilados
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Configuración local
+*.env
+.env.*
+*.sqlite3
+
+# Archivos de datos locales (como tu archivo Excel)
+*.xlsx
+data/
+*.csv
+
+# Logs
+*.log
+
+# Archivos temporales
+*.bak
+*.swp
+*.tmp
+
+# Archivos de Jupyter Notebook Checkpoints (por si acaso)
+.ipynb_checkpoints/
