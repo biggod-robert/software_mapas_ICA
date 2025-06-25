@@ -1,27 +1,32 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
-    <title>Buscador de Empresas</title>
+    <title>Mapa de Empresas - ICA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+<body class="container py-4">
+    <h1 class="mb-4">📍 Visualización de Empresas y Servicios - ICA</h1>
 
-<body>
-    <h1>Buscador de Empresas</h1>
-    <table border="1">
-        <tr>
-            <th>Nombre</th>
-            <th>Municipio</th>
-            <th>Departamento</th>
-        </tr>
-        {% for empresa in empresas %}
-        <tr>
-            <td>{{ empresa['COORDINACIÓN EPIDEMIOLÓGICA'] }}</td>
-            <td>{{ empresa['NOMBRE DE LA ORGANIZACIÓN (RAZÓN SOCIAL)'] }}</td>
-            <td>{{ empresa['NOMBRE DEL REPRESENTANTE LEGAL:'] }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <form method="get" class="mb-4">
+        <label for="hoja" class="form-label">Selecciona una categoría:</label>
+        <select name="hoja" id="hoja" class="form-select w-50" onchange="this.form.submit()">
+            {% for hoja in hojas %}
+            <option value="{{ hoja }}" {% if hoja == hoja_actual %}selected{% endif %}>{{ hoja }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if tabla %}
+    <h4>🗂️ Datos: {{ hoja_actual }}</h4>
+    <div class="table-responsive mb-5">{{ tabla|safe }}</div>
+    {% else %}
+    <p class="text-danger">No hay datos para esta categoría.</p>
+    {% endif %}
+
+    {% if mapa %}
+    <h4 class="mt-4">🗺️ Mapa de Ubicaciones</h4>
+    <div>{{ mapa|safe }}</div>
+    {% endif %}
 </body>
-
 </html>
