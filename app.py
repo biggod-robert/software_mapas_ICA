@@ -4,7 +4,7 @@ from scripts.load_data import cargar_empresas
 
 app = Flask(__name__)
 
-# Cargar los datos una vez al inicio
+# Cargar los datos una vez
 datos_por_hoja = cargar_empresas()
 
 @app.route("/", methods=["GET"])
@@ -15,56 +15,50 @@ def index():
     mapa = None
     if datos is not None and not datos.empty:
         try:
-            # Centrar el mapa en el promedio de latitudes y longitudes
+            # Centrado automático del mapa
             centro = [
-                datos["LATITUD"].astype(float).mean(),
-                datos["LONGITUD"].astype(float).mean()
+                datos["LATITUD"].mean(),
+                datos["LONGITUD"].mean()
             ]
             mapa = folium.Map(location=centro, zoom_start=6)
 
-            # Colores personalizados por categoría
+            # Colores personalizados por hoja
             colores = {
                 "FERIAS": "green",
                 "GALLERAS": "red",
                 "PLANTAS LECHERAS": "purple",
                 "PUESTOS DE CONTROL-MOVILIZACION": "orange",
-                "SERVICIOS VET. PÚBLICOS": "blue"
+                "SERVICIOS VET. PÚBLICOS": "blue",
+                "ORGANIZACIONES DE PRODUCTORES": "darkblue"
             }
             color_icono = colores.get(hoja_seleccionada, "cadetblue")
 
             for _, fila in datos.iterrows():
-                try:
-                    lat = float(fila["LATITUD"])
-                    lon = float(fila["LONGITUD"])
+                lat = fila["LATITUD"]
+                lon = fila["LONGITUD"]
+                nombre = fila.get("NOMBRE DE LA EMPRESA (RAZÓN SOCIAL)", 
+                                  fila.get("NOMBRE DE LA ORGANIZACIÓN (RAZÓN SOCIAL)", "Sin nombre"))
+                direccion = fila.get("DIRECCIÓN", fila.get("DIRECCIÓN ", "Sin dirección"))
 
-                    nombre = fila.get("NOMBRE DE LA EMPRESA (RAZÓN SOCIAL)", "Sin nombre")
-                    direccion = fila.get("DIRECCIÓN", fila.get("DIRECCIÓN ", "Sin dirección"))
+                tooltip_text = nombre
 
-                    # Texto que aparece al pasar el cursor
-                    tooltip_text = nombre
+                popup_html = f"""
+                <div style="font-size:14px; line-height:1.4; max-width:250px;">
+                    <strong style="color:#0d6efd;">{nombre}</strong><br>
+                    <span style="color:#444;">📍 {direccion}</span><br>
+                    <span style="color:#6c757d;">📌 Lat/Lon: {lat:.5f}, {lon:.5f}</span>
+                </div>
+                """
 
-                    # Contenido visual al hacer clic en el marcador
-                    popup_html = f"""
-                    <div style="font-size:14px; line-height:1.4; max-width:250px;">
-                        <strong style="color:#0d6efd;">{nombre}</strong><br>
-                        <span style="color:#444;">📍 {direccion}</span><br>
-                        <span style="color:#6c757d;">📌 Lat/Lon: {lat:.5f}, {lon:.5f}</span>
-                    </div>
-                    """
-
-                    folium.Marker(
-                        location=[lat, lon],
-                        popup=folium.Popup(popup_html, max_width=300),
-                        tooltip=tooltip_text,
-                        icon=folium.Icon(color=color_icono, icon="info-sign")
-                    ).add_to(mapa)
-
-                except Exception as err:
-                    print(f"⚠️ Error en marcador: {err}")
-                    continue
+                folium.Marker(
+                    location=[lat, lon],
+                    tooltip=tooltip_text,
+                    popup=folium.Popup(popup_html, max_width=300),
+                    icon=folium.Icon(color=color_icono, icon="info-sign")
+                ).add_to(mapa)
 
         except Exception as e:
-            print(f"⚠️ Error al crear el mapa: {e}")
+            print(f"⚠️ Error al construir el mapa: {e}")
             mapa = None
 
     return render_template("index.html",

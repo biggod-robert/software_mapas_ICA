@@ -3,55 +3,54 @@ import pandas as pd
 def cargar_empresas():
     archivo = "data/empresas.xlsx"
     
-    # Leer todas las hojas del archivo Excel
     hojas = pd.ExcelFile(archivo).sheet_names
     print(f"Hojas detectadas: {hojas}")
 
-    # Columnas clave para ubicación
-    columnas_necesarias = ["DEPARTAMENTO", "MUNICIPIO", "CODIGO MUNICIPIO", "LONGITUD", "LATITUD", "DIRECCIÓN "]
+    columnas_necesarias = [
+        "NOMBRE DE LA EMPRESA (RAZÓN SOCIAL)", "NOMBRE DE LA ORGANIZACIÓN (RAZÓN SOCIAL)",
+        "NOMBRE DE LA ENTIDAD (RAZÓN SOCIAL)", "NOMBRE DEL LABORATORIO (RAZÓN SOCIAL)", 
+        "NOMBRE DEL PUESTO O LUGAR", "NOMBRE DE LA GALLERA (RAZÓN SOCIAL)", 
+        "NOMBRE DE LA INSTITUCIÓN (RAZÓN SOCIAL)", "DEPARTAMENTO", "MUNICIPIO", "CODIGO MUNICIPIO",
+        "LONGITUD", "LATITUD", "DIRECCIÓN", "DIRECCIÓN "
+    ]
 
-    # Guardar datos de cada hoja
     datos_por_hoja = {}
 
     for hoja in hojas:
-        
-        
         try:
-            # Leer la hoja sin redefinir encabezado
-            df = pd.read_excel(archivo, sheet_name=hoja, skiprows=2)  # puedes ajustar skiprows si la fila de encabezados no es la 3ra
+            df = pd.read_excel(archivo, sheet_name=hoja, skiprows=2)
 
-            # Mostrar primeras filas para verificar la estructura
-            print(f"🔍 Primeras filas de {hoja}:")
+            print(f"\n🔍 Primeras filas de {hoja}:")
             print(df.head())
 
-            # Mostrar nombres de columna detectados por pandas
+            df.columns = df.columns.str.strip().str.replace("\n", " ").str.replace(r"\s+", " ", regex=True)
+
             print(f"📌 Nombres detectados por pandas en {hoja}:")
             print(df.columns.tolist())
 
-            # Limpiar nombres de columnas
-            df.columns = df.columns.str.strip()
-            df.columns = df.columns.str.replace("\n", " ")
-            df.columns = df.columns.str.replace(r"\s+", " ", regex=True)
-
-            # Filtrar solo las columnas esenciales
             columnas_existentes = [col for col in columnas_necesarias if col in df.columns]
-            df_filtrado = df[columnas_existentes]
+            df_filtrado = df[columnas_existentes] if columnas_existentes else pd.DataFrame()
 
+            # 🔍 Convertir columnas de coordenadas a numérico y eliminar filas inválidas
+            if "LATITUD" in df_filtrado.columns and "LONGITUD" in df_filtrado.columns:
+                df_filtrado["LATITUD"] = pd.to_numeric(df_filtrado["LATITUD"], errors="coerce")
+                df_filtrado["LONGITUD"] = pd.to_numeric(df_filtrado["LONGITUD"], errors="coerce")
+                df_filtrado = df_filtrado.dropna(subset=["LATITUD", "LONGITUD"])
 
-            # Guardar los datos en el diccionario
-            datos_por_hoja[hoja] = df
-
+            datos_por_hoja[hoja] = df_filtrado
+           
+           
             print(f"✅ Datos correctamente procesados para la hoja: {hoja}")
 
         except Exception as e:
-            print(f"⚠️ Error al procesar la hoja {hoja}: {e}")
-            datos_por_hoja[hoja] = pd.DataFrame()  # Guardar un DataFrame vacío en caso de error
+            print(f"⚠️ Error en la hoja {hoja}: {e}")
+            datos_por_hoja[hoja] = pd.DataFrame()
 
-    return datos_por_hoja  # Devuelve un diccionario con los datos organizados por hoja
+    return datos_por_hoja
 
-# Prueba la carga
+# Ejecución de prueba
 if __name__ == "__main__":
     empresas_por_hoja = cargar_empresas()
     for hoja, datos in empresas_por_hoja.items():
-        print(f"📌 Datos de {hoja}:")
+        print(f"\n📍 Datos filtrados de {hoja}:")
         print(datos.head())
