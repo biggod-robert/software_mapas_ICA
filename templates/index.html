@@ -2,31 +2,68 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Mapa de Empresas - ICA</title>
+    <title>Visualizador de Mapas ICA</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body class="container py-4">
-    <h1 class="mb-4">📍 Visualización de Empresas y Servicios - ICA</h1>
 
+    <h2 class="mb-4">📈 Visualizador de Datos Geográficos - ICA</h2>
+
+    <!-- 🔔 Mensajes flash -->
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+          <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <!-- 📂 Formulario para subir archivo -->
+    <form action="/subir" method="post" enctype="multipart/form-data" class="mb-4">
+        <label for="archivo" class="form-label">Subir nuevo archivo Excel:</label>
+        <input type="file" name="archivo" id="archivo" accept=".xlsx" class="form-control w-50" required>
+        <button type="submit" class="btn btn-primary mt-2">Cargar archivo</button>
+    </form>
+
+    {% if hojas %}
+    <!-- 🗂 Selección de hoja y columnas -->
     <form method="get" class="mb-4">
-        <label for="hoja" class="form-label">Selecciona una categoría:</label>
-        <select name="hoja" id="hoja" class="form-select w-50" onchange="this.form.submit()">
+        <label for="hoja" class="form-label">Seleccionar hoja:</label>
+        <select name="hoja" id="hoja" class="form-select w-50 mb-3" onchange="this.form.submit()">
             {% for hoja in hojas %}
             <option value="{{ hoja }}" {% if hoja == hoja_actual %}selected{% endif %}>{{ hoja }}</option>
             {% endfor %}
         </select>
+
+        <label for="columnas">Columnas a mostrar:</label>
+        <select name="columnas" id="columnas" multiple class="form-select w-50 mb-2" onchange="this.form.submit()">
+            {% for col in columnas %}
+                <option value="{{ col }}" {% if col in columnas_mostradas %}selected{% endif %}>{{ col }}</option>
+            {% endfor %}
+        </select>
+        <small class="text-muted">Usa Ctrl (o Cmd en Mac) para seleccionar varias columnas.</small>
     </form>
+    {% endif %}
 
+    <!-- 📋 Tabla de datos -->
     {% if tabla %}
-    <h4>🗂️ Datos: {{ hoja_actual }}</h4>
-    <div class="table-responsive mb-5">{{ tabla|safe }}</div>
-    {% else %}
-    <p class="text-danger">No hay datos para esta categoría.</p>
+        <h4 class="mb-2">🗂️ Tabla: {{ hoja_actual }}</h4>
+        <div class="table-responsive mb-4">
+            {{ tabla|safe }}
+        </div>
     {% endif %}
 
+    <!-- 🗺️ Mapa -->
     {% if mapa %}
-    <h4 class="mt-4">🗺️ Mapa de Ubicaciones</h4>
-    <div>{{ mapa|safe }}</div>
+        <h4 class="mb-2">🗺️ Mapa de Ubicaciones</h4>
+        <div class="border mb-4">
+            {{ mapa|safe }}
+        </div>
     {% endif %}
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
