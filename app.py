@@ -1,3 +1,7 @@
+__author__ = "Robert Moor"
+__copyright__ = "Copyright © 2025 Robert Moor"
+__license__ = "Todos los derechos reservados"
+
 from flask import Flask, render_template, request, redirect, flash
 from werkzeug.utils import secure_filename
 import pandas as pd
@@ -5,9 +9,8 @@ import folium
 import os
 
 app = Flask(__name__)
-app.secret_key = "clave_secreta_segura"  # Necesario para flash messages
+app.secret_key = "clave_secreta_segura"
 
-# Diccionario global para guardar datos por hoja
 datos_por_hoja = {}
 
 @app.route("/", methods=["GET"])
@@ -21,13 +24,24 @@ def index():
     hoja_actual = hoja_seleccionada or list(datos_por_hoja.keys())[0]
     datos = datos_por_hoja[hoja_actual]
 
-    if not columnas_mostradas:
-        columnas_mostradas = datos.columns[:5].tolist()
+    # ✅ Validar columnas seleccionadas contra las disponibles
+    columnas_validas = [col for col in columnas_mostradas if col in datos.columns]
+    if not columnas_validas:
+        columnas_validas = datos.columns[:5].tolist()
+        # 🔔 Notificar si hubo ajuste automático
+    if set(columnas_mostradas) != set(columnas_validas):    
+        flash("⚠ Algunas columnas seleccionadas no están disponibles en esta hoja. Se usaron columnas por defecto.")
 
-    # Generar tabla HTML con columnas seleccionadas
-    tabla_html = datos[columnas_mostradas].to_html(classes="table table-bordered table-striped", index=False)
+    # 🔍 Renderizar tabla solo con columnas válidas
+    tabla_html = datos[columnas_validas].to_html(classes="table table-bordered table-striped", index=False)
 
-    # Crear mapa si hay datos
+    def buscar_valor(fila, opciones, por_defecto="Sin dato"):
+        for col in opciones:
+            if col in fila and pd.notna(fila[col]):
+                return fila[col]
+        return por_defecto
+
+    # 🌍 Generar mapa
     mapa = None
     if not datos.empty:
         centro = [datos["LATITUD"].mean(), datos["LONGITUD"].mean()]
@@ -36,9 +50,16 @@ def index():
         for _, fila in datos.iterrows():
             lat = fila["LATITUD"]
             lon = fila["LONGITUD"]
-            nombre = fila.get("NOMBRE DE LA EMPRESA (RAZÓN SOCIAL)",
-                              fila.get("NOMBRE DE LA ORGANIZACIÓN (RAZÓN SOCIAL)", "Sin nombre"))
-            direccion = fila.get("DIRECCIÓN", fila.get("DIRECCIÓN ", "Sin dirección"))
+            nombre = buscar_valor(fila, [
+                "NOMBRE DE LA EMPRESA (RAZÓN SOCIAL)",
+                "NOMBRE DE LA ORGANIZACIÓN (RAZÓN SOCIAL)",
+                "NOMBRE DE LA ENTIDAD (RAZÓN SOCIAL)",
+                "NOMBRE DE LA INSTITUCIÓN (RAZÓN SOCIAL)",
+                "NOMBRE DEL PUESTO O LUGAR",
+                "NOMBRE DE LA GALLERA (RAZÓN SOCIAL)"
+                "NOMBRE DEL LABORATORIO (RAZÓN SOCIAL)"
+            ])
+            direccion = buscar_valor(fila, ["DIRECCIÓN", "DIRECCIÓN "], "Sin dirección")
 
             popup_html = f"""
                 <div style="font-size:14px; max-width:250px;">
@@ -47,7 +68,6 @@ def index():
                     <span style="color:#6c757d;">📌 Lat/Lon: {lat:.5f}, {lon:.5f}</span>
                 </div>
             """
-
             folium.Marker(
                 location=[lat, lon],
                 tooltip=nombre,
@@ -59,7 +79,7 @@ def index():
                            hojas=list(datos_por_hoja.keys()),
                            hoja_actual=hoja_actual,
                            columnas=datos.columns,
-                           columnas_mostradas=columnas_mostradas,
+                           columnas_mostradas=columnas_validas,
                            tabla=tabla_html,
                            mapa=mapa._repr_html_() if mapa else None)
 
@@ -91,6 +111,14 @@ def subir():
     return redirect("/")
 
 
+
+import threading
+import webbrowser
+
+def abrir_navegador():
+    webbrowser.open_new("http://127.0.0.1:5000")
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    threading.Timer(1.5, abrir_navegador).start()
+    app.run(debug=False)
 

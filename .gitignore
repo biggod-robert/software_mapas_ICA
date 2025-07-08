@@ -33,3 +33,10 @@ data/
 
 # Archivos de Jupyter Notebook Checkpoints (por si acaso)
 .ipynb_checkpoints/
+# Archivos generados por PyInstaller
+*.spec
+build/
+dist/
+*.exe
+*.pkg
+*.toc
