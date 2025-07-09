@@ -1,7 +1,14 @@
-Instrucciones para ejecutar el Visualizador ICA:
+Visualizador ICA – Sistema de visualización territorial
 
-1. Hacer doble clic en iniciar.bat
-2. Esperar a que se abra el navegador automáticamente
-3. Subir un archivo .xlsx y comenzar a usar el visualizador
+Pasos para usar:
+1. Haga doble clic en el archivo "VisualizadorICA.exe"
+2. El sistema abrirá automáticamente su navegador predeterminado
+3. Cargue su archivo Excel (.xlsx) y disfrute del mapa interactivo
 
-⚠ No necesitas instalar nada si usas esta carpeta tal como está.
+Importante:
+• No se requiere instalar Python ni software adicional
+• No se debe ejecutar ningún archivo ".bat"
+• Este software está empaquetado y listo para su uso en ambientes bloqueados
+
+Autor: Robert Moor – Tecnólogo SENA
+
